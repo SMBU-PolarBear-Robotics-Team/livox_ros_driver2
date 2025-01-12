@@ -52,14 +52,6 @@ rosidl_generate_interfaces(${LIVOX_INTERFACES}
   LIBRARY_NAME ${PROJECT_NAME}
 )
 
-## make sure the livox_lidar_sdk_shared library is installed
-find_library(LIVOX_LIDAR_SDK_LIBRARY liblivox_lidar_sdk_shared.so /usr/local/lib REQUIRED)
-
-##
-find_path(LIVOX_LIDAR_SDK_INCLUDE_DIR
-  NAMES "livox_lidar_api.h" "livox_lidar_def.h"
-  REQUIRED)
-
 ## PCL library
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
@@ -103,11 +95,19 @@ endif()
 target_include_directories(${PROJECT_NAME} PUBLIC
   ${PCL_INCLUDE_DIRS}
   ${APR_INCLUDE_DIRS}
-  ${LIVOX_LIDAR_SDK_INCLUDE_DIR}
   ${LIVOX_INTERFACES_INCLUDE_DIRECTORIES}   # for custom msgs
+  Livox-SDK2/include
   3rdparty
   src
 )
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+  set(LIVOX_LIDAR_SDK_LIBRARY ${PROJECT_SOURCE_DIR}/Livox-SDK2/lib/amd64/liblivox_lidar_sdk_shared.so)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+set(LIVOX_LIDAR_SDK_LIBRARY ${PROJECT_SOURCE_DIR}/Livox-SDK2/lib/arm64/liblivox_lidar_sdk_shared.so)
+else()
+  message(FATAL_ERROR "Unsupport host system architecture: ${CMAKE_HOST_SYSTEM_PROCESSOR}!")
+endif()
 
 # link libraries
 target_link_libraries(${PROJECT_NAME}
